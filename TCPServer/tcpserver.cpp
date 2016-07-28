@@ -2,9 +2,9 @@
 #include "tcpserver.h"
 #include "databasemgr.h"
 
-const QString TCPServer::CMD_START_RECORD = "startrecord";
-const QString TCPServer::CMD_STOP_RECORD = "stoprecord";
-const int TCPServer::TCP_PORT = 8888;
+const QString TCPServer::CMD_START_RECORD = "start record";
+const QString TCPServer::CMD_STOP_RECORD = "stop record";
+const int TCPServer::TCP_PORT = 5438;
 
 TCPServer::TCPServer():
     lastID(0),
@@ -13,10 +13,10 @@ TCPServer::TCPServer():
     listOfDatabase()
 {
     if (!tcpServer->listen(QHostAddress::Any, TCP_PORT)) {
-        qDebug() << "Can not listen on port " << TCP_PORT;
+        qDebug() << "TCPServer can not listen on port " << TCP_PORT;
     }
     else {
-        qDebug() << "listen on " << tcpServer->serverPort();
+        qDebug() << "TCPServer listen on " << tcpServer->serverPort();
         connect(tcpServer, SIGNAL(newConnection()), this, SLOT(slot_NewConnection()));
     }
 }
@@ -42,26 +42,34 @@ void TCPServer::slot_DataReceived()
     QString reply = "";
     if (str.startsWith(CMD_START_RECORD))
     {
-        lastID ++;
-        qDebug() << "Start record id = " << lastID;
+        int id = (int) QDateTime::currentMSecsSinceEpoch();
+        qDebug() << "Start record id = " << id;
         reply = QString::number(lastID);
-        DataBaseMgr *dbmgr = new DataBaseMgr(lastID, QString("/ram/") + QString::number(lastID) + ".db");
+        DataBaseMgr *dbmgr = new DataBaseMgr(id, QString("/ram/") + QString::number(id) + ".db");
         listOfDatabase.append(dbmgr);
 
     }
     else if (str.startsWith(CMD_STOP_RECORD))
     {
-        int id = str.split("|").at(1).toInt();
-        qDebug() << "Stop record id = " << id;
         DataBaseMgr * dbmgr = NULL;
-        for (int i = 0; i < listOfDatabase.length(); i++)
+        if (str.contains('|'))
         {
-            if (listOfDatabase.at(i)->getId() == id)
+            int id = str.split("|").at(1).toInt();
+            qDebug() << "Stop record id = " << id;
+            for (int i = 0; i < listOfDatabase.length(); i++)
             {
-                dbmgr = listOfDatabase.at(i);
-                listOfDatabase.removeAt(i);
-                break;
+                if (listOfDatabase.at(i)->getId() == id)
+                {
+                    dbmgr = listOfDatabase.at(i);
+                    listOfDatabase.removeAt(i);
+                    break;
+                }
             }
+        }
+        else if (listOfDatabase.length() > 0)
+        {
+            dbmgr = listOfDatabase.at(0);
+            listOfDatabase.removeAt(0);
         }
         if (dbmgr)
         {
@@ -76,6 +84,7 @@ void TCPServer::slot_DataReceived()
             qDebug() << "No database found";
             reply = "No database found";
         }
+
 
     }
 

@@ -10,6 +10,7 @@
 #define MAX_SENSOR_SUPPORT  4
 #define MAX_RECORD_SAVED    10
 
+extern qint64 startms;
 
 class Sensor{
 public:
@@ -22,9 +23,9 @@ public:
 class Record{
 public:
     int recordID;
-    int ms;
+    qint64 ms;
     double value[MAX_SENSOR_SUPPORT];
-    Record(): ms(QDateTime::currentMSecsSinceEpoch()) {}
+    Record(): ms(QDateTime::currentMSecsSinceEpoch() - startms) {}
 };
 
 class SharedMemMgr: public QObject
@@ -35,6 +36,7 @@ public:
 
     /** For Database and websocket get data */
     QList<Record> getRecordFromID(int id);
+    QList<Record> getRecordFromTime(qint64 ms);
     QList<Sensor> getListOfSensors() const;
     Record * getLastRecord() const;
 

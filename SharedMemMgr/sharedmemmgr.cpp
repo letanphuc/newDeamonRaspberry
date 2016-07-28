@@ -15,7 +15,7 @@ QList<Record> SharedMemMgr::getRecordFromID(int id)
         int i = 0;
         for (i = 0; i < listOfRecords.length(); i++)
         {
-            if (listOfRecords.at(i).recordID >= id)
+            if (listOfRecords.at(i).recordID > id)
                 break;
         }
         QList<Record> ret = listOfRecords.mid(i);
@@ -23,6 +23,28 @@ QList<Record> SharedMemMgr::getRecordFromID(int id)
         return ret;
     }
 
+}
+
+QList<Record> SharedMemMgr::getRecordFromTime(qint64 ms)
+{
+    mutex.lock();
+    if (ms == -1)
+    {
+        mutex.unlock();
+        return listOfRecords;
+    }
+    else
+    {
+        int i = 0;
+        for (i = 0; i < listOfRecords.length(); i++)
+        {
+            if (listOfRecords.at(i).ms >= ms)
+                break;
+        }
+        QList<Record> ret = listOfRecords.mid(i);
+        mutex.unlock();
+        return ret;
+    }
 }
 
 QList<Sensor> SharedMemMgr::getListOfSensors() const
@@ -76,4 +98,4 @@ void SharedMemMgr::addRecord(Record record)
 }
 
 SharedMemMgr sharedMemMgr;
-
+qint64 startms = QDateTime::currentMSecsSinceEpoch();

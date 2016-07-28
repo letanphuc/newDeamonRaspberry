@@ -1,4 +1,4 @@
-QT += core network gui sql
+QT += core network gui sql websockets
 
 TARGET = qtDeamonRasp
 CONFIG += console

@@ -48,7 +48,7 @@ void SensorMgr::run()
         sharedMemMgr.addRecord(r);
         emit sng_recordAdded();
 
-        usleep(100);
+        msleep(30);
 #else
 #endif
     }
