@@ -32,6 +32,7 @@ private:
     int lastRecordID;
     QMutex m_mutex;
     bool isStop;
+    qint64 startTime;
 
 signals:
     void done(DataBaseMgr * dbmgr);

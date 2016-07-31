@@ -23,6 +23,7 @@ WebSocketServer::WebSocketServer(QObject *parent) :
     else
     {
         qDebug() << "WebSocketServer can not listen on port: " << WEB_PORT;
+        exit(-2);
     }
 
 }
@@ -62,7 +63,7 @@ void WebSocketServer::slot_ReceiveMessage(QString message)
             QList<Record> records = sharedMemMgr.getRecordFromTime(lastRecord);
             int i = records.length() - 1;
             {
-                reply += QString::number(records.at(i).ms) + "," +
+                reply += QString::number(records.at(i).recordID) + "," +
                         QString::number(records.at(i).ms) + "," +
                         QString::number(records.at(i).value[0]) + "," +
                         QString::number(records.at(i).value[1]) + "," +

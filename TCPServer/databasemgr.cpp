@@ -3,8 +3,6 @@
 #include "databasemgr.h"
 #include <QSqlError>
 
-#undef Q_ASSERT
-#define Q_ASSERT(x) x
 
 
 DataBaseMgr::DataBaseMgr(int id, QString dataBasePath):
@@ -12,7 +10,8 @@ DataBaseMgr::DataBaseMgr(int id, QString dataBasePath):
     db(QSqlDatabase::addDatabase("QSQLITE", dataBasePath)),
     id(id),
     lastRecordID(0),
-    isStop(false)
+    isStop(false),
+    startTime(QDateTime::currentMSecsSinceEpoch() - startms)
 {
     start();
 }
@@ -108,7 +107,7 @@ void DataBaseMgr::addSensorInfor()
         Sensor s = list.at(i);
         QString cmd = QString("INSERT INTO \"detail\" VALUES(%1,'%2','%3','%4')")
                         .arg(s.id)
-                        .arg("name" + s.id)
+                        .arg(QString("name") + QString::number(s.id))
                         .arg(s.type)
                         .arg(s.decription);
         Q_ASSERT(query.exec(cmd));
@@ -128,6 +127,7 @@ void DataBaseMgr::addFirstRecord()
 void DataBaseMgr::addARecord(Record &r)
 {
     QSqlQuery query(db);
+    r.ms -= startTime;
     QString cmd = QString("INSERT INTO data VALUES(%1,'%2',%3,%4,%5,%6)")
                     .arg(r.recordID)
                     .arg(QString::number(r.ms) + "ms")

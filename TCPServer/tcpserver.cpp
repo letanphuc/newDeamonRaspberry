@@ -14,6 +14,7 @@ TCPServer::TCPServer():
 {
     if (!tcpServer->listen(QHostAddress::Any, TCP_PORT)) {
         qDebug() << "TCPServer can not listen on port " << TCP_PORT;
+        exit(-1);
     }
     else {
         qDebug() << "TCPServer listen on " << tcpServer->serverPort();
