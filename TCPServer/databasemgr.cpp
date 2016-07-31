@@ -119,8 +119,9 @@ void DataBaseMgr::addFirstRecord()
     Record * r = sharedMemMgr.getLastRecord();
     if (r)
     {
-        addARecord(*r);
         lastRecordID = r->recordID;
+        startTime = r->ms;
+        addARecord(*r);
     }
 }
 
