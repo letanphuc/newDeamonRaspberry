@@ -1,9 +1,14 @@
 #include "sensormgr.h"
 #include <QtCore/qmath.h>
 
-SensorMgr::SensorMgr()
+SensorMgr::SensorMgr():
+    m_stop(false),
+    deviceMonitor(new DeviceMonitor(this))
 {
-
+    connect(deviceMonitor, SIGNAL(devideAdded(int,QString)),
+            this, SLOT(slot_SensorAdded(int,QString)));
+    connect(deviceMonitor, SIGNAL(devideRemoved(int,QString)),
+            this, SLOT(slot_SensorRemoved(int,QString)));
 }
 
 void SensorMgr::stop()
@@ -17,18 +22,6 @@ void SensorMgr::stop()
 void SensorMgr::run()
 {
     static int recordid = 0;
-
-#ifndef __arm__
-    /** simulator data */
-    for (int i= 0; i < 4; i++)
-    {
-        Sensor s;
-        s.decription = "decription " + QString::number(i);
-        s.type = "Ultrasonic";
-        s.id = i;
-        sharedMemMgr.addSensor(s);
-    }
-#endif
 
     while (isRunning())
     {
@@ -55,4 +48,41 @@ void SensorMgr::run()
 
 }
 
-SensorMgr sensorMgr;
+void SensorMgr::slot_SensorAdded(int usbPort, QString name)
+{
+    qDebug() << Q_FUNC_INFO << " usbPort = " << usbPort
+             << " name = " << name;
+    Sensor s;
+    s.decription = "decription";
+    s.id = usbPort;
+    s.type = "ultrasonic";
+    s.devName = "/dev/" + name;
+
+    sharedMemMgr.addSensor(s);
+    listOfReaderThread.append(new SensorReader(this, s.id, s.devName));
+}
+
+void SensorMgr::slot_SensorRemoved(int usbPort, QString name)
+{
+    qDebug() << Q_FUNC_INFO << " usbPort = " << usbPort
+             << " name = " << name;
+    sharedMemMgr.removeSensor(usbPort);
+    for (int i =0; i < listOfReaderThread.length(); i++)
+    {
+        SensorReader * t = listOfReaderThread.at(i);
+        if (t->getId() == usbPort)
+        {
+            t->terminate();
+        }
+        listOfReaderThread.removeAt(i);
+        connect(t, SIGNAL(sgn_Finished(SensorReader*)),
+                this, SLOT(slot_ReaderFinished(SensorReader*)));
+    }
+
+}
+
+void SensorMgr::slot_ReaderFinished(SensorReader *t)
+{
+    qDebug() << "Delete " << t;
+    delete t;
+}

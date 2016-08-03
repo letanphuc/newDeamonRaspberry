@@ -1,4 +1,4 @@
-QT += core network gui sql websockets
+QT += core network gui sql websockets serialport
 
 TARGET = qtDeamonRasp
 CONFIG += console
@@ -11,12 +11,16 @@ SOURCES += main.cpp \
     SharedMemMgr/sharedmemmgr.cpp \
     TCPServer/tcpserver.cpp \
     TCPServer/databasemgr.cpp \
-    WebsocketServer/websocketserver.cpp
+    WebsocketServer/websocketserver.cpp \
+    SensorMgr/dedevicemonitor.cpp \
+    SensorMgr/sensorreader.cpp
 
 HEADERS += \
     SensorMgr/sensormgr.h \
     SharedMemMgr/sharedmemmgr.h \
     TCPServer/tcpserver.h \
     TCPServer/databasemgr.h \
-    WebsocketServer/websocketserver.h
+    WebsocketServer/websocketserver.h \
+    SensorMgr/devicemonitor.h \
+    SensorMgr/sensorreader.h
 

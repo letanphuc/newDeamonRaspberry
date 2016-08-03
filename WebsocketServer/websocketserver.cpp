@@ -62,6 +62,7 @@ void WebSocketServer::slot_ReceiveMessage(QString message)
             qint64 lastRecord = list[1].toInt();
             QList<Record> records = sharedMemMgr.getRecordFromTime(lastRecord);
             int i = records.length() - 1;
+            if (i >= 0)
             {
                 reply += QString::number(records.at(i).recordID) + "," +
                         QString::number(records.at(i).ms) + "," +

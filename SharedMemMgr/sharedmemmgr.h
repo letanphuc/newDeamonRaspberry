@@ -17,6 +17,7 @@ public:
     int id;
     QString type;
     QString decription;
+    QString devName;
     Sensor(): id(0), type(""), decription(""){}
 };
 

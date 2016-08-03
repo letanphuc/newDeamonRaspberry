@@ -79,7 +79,7 @@ void SharedMemMgr::removeSensor(int sensorID)
         if (listOfSensors.at(i).id == sensorID)
         {
             listOfSensors.removeAt(i);
-            return;
+            break;
         }
     }
     mutex.unlock();

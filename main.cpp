@@ -10,6 +10,7 @@ int main(int argc, char *argv[])
 
     TCPServer tcp;
     WebSocketServer websocket;
+    SensorMgr sensorMgr;
     sensorMgr.start();
 
 
