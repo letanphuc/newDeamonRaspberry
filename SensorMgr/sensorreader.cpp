@@ -9,6 +9,7 @@ SensorReader::SensorReader(QObject *parent, int id, QString devName):
     id(id),
     isStop(false)
 {
+    qRegisterMetaType<QSerialPort::SerialPortError>("QSerialPort::SerialPortError");
     start();
 }
 
@@ -16,6 +17,7 @@ SensorReader::SensorReader(QObject *parent, int id, QString devName):
 void SensorReader::run()
 {
     QSerialPort serial;
+    QByteArray arr;
     serial.setBaudRate(115200);
     serial.setPortName(devName);
 
@@ -29,13 +31,14 @@ void SensorReader::run()
     {
         if (isStop) break;
 
-        serial.waitForReadyRead(10);
-        QByteArray arr = serial.readAll();
+        serial.waitForReadyRead(-1);
+        arr += serial.readAll();
         if (arr.length() > 0)
         {
-            qDebug() << Q_FUNC_INFO << " " << QString::fromLatin1(arr);
+            handleData(arr);
         }
     }
+    qDebug() << Q_FUNC_INFO << " End";
 
     emit sgn_Finished(this);
 }
@@ -53,4 +56,23 @@ int SensorReader::getId() const
 void SensorReader::setId(int value)
 {
     id = value;
+}
+
+void SensorReader::handleData(QByteArray &arr)
+{
+    if (arr.length() >= 4){
+        /** Read 4 byte */
+        QByteArray number = arr.left(4);
+        arr.remove(0, 4);
+
+        float * data = (float*) number.data();
+        qDebug() << "Value = " << *data;
+
+        sgn_NewData(id, *data);
+    }
+}
+
+void SensorReader::slot_Error(QSerialPort::SerialPortError error)
+{
+    qDebug() << Q_FUNC_INFO << " error = " << (int) error;
 }

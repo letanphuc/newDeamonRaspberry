@@ -3,7 +3,9 @@
 
 SensorMgr::SensorMgr():
     m_stop(false),
-    deviceMonitor(new DeviceMonitor(this))
+    deviceMonitor(new DeviceMonitor(this)),
+    needToDeleteThread(0),
+    currentRecordID(0)
 {
     connect(deviceMonitor, SIGNAL(devideAdded(int,QString)),
             this, SLOT(slot_SensorAdded(int,QString)));
@@ -18,33 +20,8 @@ void SensorMgr::stop()
     m_mutex.unlock();
 }
 
-
 void SensorMgr::run()
 {
-    static int recordid = 0;
-
-    while (isRunning())
-    {
-        m_mutex.lock();
-        if (m_stop) break;
-        m_mutex.unlock();
-
-#ifndef __arm__
-        /** simulator data */
-        Record r;
-        r.recordID = recordid++;
-        r.value[0] = qSin(r.recordID / 1000.0);
-        r.value[1] = qSin(r.recordID / 100.0);
-        r.value[2] = qSin(r.recordID / 10.0);
-        r.value[3] = qSin(r.recordID / 1.0);
-
-        sharedMemMgr.addRecord(r);
-        emit sng_recordAdded();
-
-        msleep(30);
-#else
-#endif
-    }
 
 }
 
@@ -59,24 +36,33 @@ void SensorMgr::slot_SensorAdded(int usbPort, QString name)
     s.devName = "/dev/" + name;
 
     sharedMemMgr.addSensor(s);
-    listOfReaderThread.append(new SensorReader(this, s.id, s.devName));
+    Sensor_t * sensor = new Sensor_t;
+    sensor->reader = new SensorReader(this, s.id, s.devName);
+    connect(sensor->reader, SIGNAL(sgn_NewData(int,float)),
+            this, SLOT(slot_NewData(int,float)));
+    sensor->latestValue = 0;
+    sensor->hasNewData = false;
+    listOfSensors.append(sensor);
 }
+
 
 void SensorMgr::slot_SensorRemoved(int usbPort, QString name)
 {
     qDebug() << Q_FUNC_INFO << " usbPort = " << usbPort
              << " name = " << name;
     sharedMemMgr.removeSensor(usbPort);
-    for (int i =0; i < listOfReaderThread.length(); i++)
+    for (int i =0; i < listOfSensors.length(); i++)
     {
-        SensorReader * t = listOfReaderThread.at(i);
+        SensorReader * t = listOfSensors.at(i)->reader;
         if (t->getId() == usbPort)
         {
             t->terminate();
         }
-        listOfReaderThread.removeAt(i);
-        connect(t, SIGNAL(sgn_Finished(SensorReader*)),
-                this, SLOT(slot_ReaderFinished(SensorReader*)));
+        listOfSensors.removeAt(i);
+        t->terminate();
+        connect(t, SIGNAL(finished()),
+                this, SLOT(slot_ReaderFinished()));
+        needToDeleteThread= t;
     }
 
 }
@@ -85,4 +71,53 @@ void SensorMgr::slot_ReaderFinished(SensorReader *t)
 {
     qDebug() << "Delete " << t;
     delete t;
+}
+
+void SensorMgr::slot_ReaderFinished()
+{
+    qDebug() << Q_FUNC_INFO << "Delete " << needToDeleteThread;
+    delete needToDeleteThread;
+    needToDeleteThread = 0;
+}
+
+void SensorMgr::slot_NewData(int id, float value)
+{
+    qDebug() << Q_FUNC_INFO << " " << id << " " << value;
+    Sensor_t * sensor = 0;
+    for (int i =0; i < listOfSensors.length(); i++)
+    {
+        if (listOfSensors.at(i)->reader->getId() == id)
+        {
+            sensor = listOfSensors.at(i);
+            break;
+        }
+    }
+
+    if (sensor)
+    {
+        sensor->latestValue = value;
+        if (!sensor->hasNewData)
+        {
+            sensor->hasNewData = true;
+            /** check if enough data */
+            for (int i =0; i < listOfSensors.length(); i++)
+            {
+                if (!listOfSensors.at(i)->hasNewData)
+                    return;
+            }
+
+            /** Add a record */
+            Record r;
+            r.recordID = currentRecordID++;
+            for (int i =0; i < listOfSensors.length(); i++)
+            {
+                sensor = listOfSensors.at(i);
+                sensor->hasNewData = false;
+                r.value[i] = sensor->latestValue;
+            }
+            sharedMemMgr.addRecord(r);
+            emit sng_recordAdded();
+
+        }
+    }
 }

@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QThread>
 #include <QString>
+#include <QSerialPort>
 
 class SensorReader : public QThread
 {
@@ -15,6 +16,7 @@ public:
 
     int getId() const;
     void setId(int value);
+    void handleData(QByteArray & arr);
 
 private:
     QString devName;
@@ -23,7 +25,9 @@ private:
 
 signals:
     void sgn_Finished(SensorReader *);
+    void sgn_NewData(int id, float value);
 public slots:
+    void slot_Error(QSerialPort::SerialPortError error);
 };
 
 #endif // SENSORREADER_H
