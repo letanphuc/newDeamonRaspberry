@@ -76,13 +76,13 @@ void SensorMgr::slot_ReaderFinished(SensorReader *t)
 void SensorMgr::slot_ReaderFinished()
 {
     qDebug() << Q_FUNC_INFO << "Delete " << needToDeleteThread;
-    delete needToDeleteThread;
+//    delete needToDeleteThread;
     needToDeleteThread = 0;
 }
 
 void SensorMgr::slot_NewData(int id, float value)
 {
-    qDebug() << Q_FUNC_INFO << " " << id << " " << value;
+//    qDebug() << Q_FUNC_INFO << " " << id << " " << value;
     Sensor_t * sensor = 0;
     for (int i =0; i < listOfSensors.length(); i++)
     {
@@ -113,7 +113,7 @@ void SensorMgr::slot_NewData(int id, float value)
             {
                 sensor = listOfSensors.at(i);
                 sensor->hasNewData = false;
-                r.value[i] = sensor->latestValue;
+                r.value[sensor->reader->getId()] = sensor->latestValue;
             }
             sharedMemMgr.addRecord(r);
             emit sng_recordAdded();

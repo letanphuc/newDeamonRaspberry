@@ -2,7 +2,7 @@
 
 int DeviceMonitor::getPortID(QString path)
 {
-    int id = -1;
+    int id = 100;
     QMap<QString, int>::iterator i;
     for (i = listOfUSBPort.begin(); i != listOfUSBPort.end(); ++i)
     {
@@ -23,6 +23,7 @@ DeviceMonitor::DeviceMonitor(QObject *parent):
     currentEvent = NULL;
     listOfUSBPort["2-1.2"] = 1;
     listOfUSBPort["1-1.2"] = 2;
+    listOfUSBPort["2-1.1"] = 3;
     registeredSUBSYSTEM.append("tty");
 }
 
@@ -77,6 +78,7 @@ void DeviceMonitor::endParseLine()
             if (registeredSUBSYSTEM.contains(currentEvent->infos["SUBSYSTEM"]))
             {
                 int id = getPortID(shortPath(currentEvent->infos["DEVPATH"]));
+                qDebug() << "devideAdded " << id << " " << currentEvent->infos["DEVNAME"];
                 emit devideAdded(id, currentEvent->infos["DEVNAME"]);
             }
         }
@@ -85,6 +87,7 @@ void DeviceMonitor::endParseLine()
             if (registeredSUBSYSTEM.contains(currentEvent->infos["SUBSYSTEM"]))
             {
                 int id = getPortID(shortPath(currentEvent->infos["DEVPATH"]));
+                qDebug() << "devideRemoved " << id << " " << currentEvent->infos["DEVNAME"];
                 emit devideRemoved(id, currentEvent->infos["DEVNAME"]);
             }
         }

@@ -26,7 +26,11 @@ public:
     int recordID;
     qint64 ms;
     double value[MAX_SENSOR_SUPPORT];
-    Record(): ms(QDateTime::currentMSecsSinceEpoch() - startms) {}
+    Record():
+        ms(QDateTime::currentMSecsSinceEpoch() - startms)
+    {
+        memset(value, 0, sizeof(value));
+    }
 };
 
 class SharedMemMgr: public QObject

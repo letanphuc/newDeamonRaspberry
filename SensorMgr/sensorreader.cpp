@@ -66,7 +66,7 @@ void SensorReader::handleData(QByteArray &arr)
         arr.remove(0, 4);
 
         float * data = (float*) number.data();
-        qDebug() << "Value = " << *data;
+//        qDebug() << "Value = " << *data;
 
         sgn_NewData(id, *data);
     }

@@ -67,6 +67,7 @@ void DataBaseMgr::run()
         }
         usleep(40);
     }
+    m_mutex.unlock();
 
     db.close();
 
@@ -136,7 +137,7 @@ void DataBaseMgr::addARecord(Record &r)
                     .arg(QString::number(r.value[1]))
                     .arg(QString::number(r.value[2]))
                     .arg(QString::number(r.value[3]));
-    qDebug() << cmd;
+//    qDebug() << cmd;
     lastRecordID = r.recordID;
     Q_ASSERT(query.exec(cmd));
     qDebug() << query.lastError().text();
