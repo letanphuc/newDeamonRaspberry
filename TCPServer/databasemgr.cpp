@@ -80,7 +80,7 @@ void DataBaseMgr::createTable()
     static const QString CREATE_TABLE_DATA_CMD =
             "CREATE TABLE data (" \
             "	recordID	INTEGER," \
-            "	recordTime	TEXT," \
+            "	recordTime	REAL," \
             "	value1	REAL," \
             "	value2	REAL," \
             "	value3	REAL," \
@@ -132,7 +132,7 @@ void DataBaseMgr::addARecord(Record &r)
     r.ms -= startTime;
     QString cmd = QString("INSERT INTO data VALUES(%1,'%2',%3,%4,%5,%6)")
                     .arg(r.recordID)
-                    .arg(QString::number(r.ms) + "ms")
+                    .arg(QString::number(r.ms))
                     .arg(QString::number(r.value[0]))
                     .arg(QString::number(r.value[1]))
                     .arg(QString::number(r.value[2]))
