@@ -43,6 +43,8 @@ private:
 public:
     DeviceMonitor(QObject* parent = NULL);
 
+    void getListPrePlugPorts();
+
     void setUp();
 
     void endParseLine();

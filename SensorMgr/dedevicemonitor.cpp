@@ -1,4 +1,6 @@
 #include "devicemonitor.h"
+#include <QSerialPortInfo>
+#include <QProcess>
 
 int DeviceMonitor::getPortID(QString path)
 {
@@ -33,6 +35,35 @@ DeviceMonitor::DeviceMonitor(QObject *parent):
     listOfUSBPort["2-1.1"] = 3;
     #endif
     registeredSUBSYSTEM.append("tty");
+}
+
+void DeviceMonitor::getListPrePlugPorts()
+{
+    QList<QSerialPortInfo> list = QSerialPortInfo::availablePorts();
+    for (int i =0; i < list.length(); i++)
+    {
+        if (list.at(i).description() == "STM32 Virtual ComPort")
+        {
+            const QString program = "/bin/sh";
+            QStringList arguments;
+            arguments << "-c";
+            arguments << QString("dmesg | grep %1 | tail --lines=1").arg(list.at(i).portName());
+            QProcess p;
+            p.start(program, arguments);
+            p.waitForFinished();
+            QString tmp = QString(p.readAllStandardOutput());
+            QStringList split = tmp.split(" ");
+            tmp = split.at(3);
+            split = tmp.split(":");
+            tmp = split.at(0);
+
+            qDebug() << tmp;
+
+            emit devideAdded(getPortID(tmp), list.at(i).portName());
+
+        }
+
+    }
 }
 
 void DeviceMonitor::setUp()

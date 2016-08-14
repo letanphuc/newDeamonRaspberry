@@ -11,6 +11,8 @@ SensorMgr::SensorMgr():
             this, SLOT(slot_SensorAdded(int,QString)));
     connect(deviceMonitor, SIGNAL(devideRemoved(int,QString)),
             this, SLOT(slot_SensorRemoved(int,QString)));
+
+    deviceMonitor->getListPrePlugPorts();
 }
 
 void SensorMgr::stop()
