@@ -1,7 +1,7 @@
 QT += core network gui sql websockets serialport
 
 TARGET = qtDeamonRasp
-CONFIG += console
+CONFIG += console debug
 CONFIG -= app_bundle
 
 TEMPLATE = app

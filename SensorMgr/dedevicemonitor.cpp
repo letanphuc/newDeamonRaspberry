@@ -3,6 +3,7 @@
 int DeviceMonitor::getPortID(QString path)
 {
     int id = 100;
+    qDebug() << path;
     QMap<QString, int>::iterator i;
     for (i = listOfUSBPort.begin(); i != listOfUSBPort.end(); ++i)
     {
@@ -21,9 +22,16 @@ DeviceMonitor::DeviceMonitor(QObject *parent):
 {
     setUp();
     currentEvent = NULL;
+    #ifdef __arm__
+    listOfUSBPort["1-1.2"] = 0;
+    listOfUSBPort["1-1.3"] = 1;
+    listOfUSBPort["1-1.4"] = 2;
+    listOfUSBPort["1-1.5"] = 3;
+    #else
     listOfUSBPort["2-1.2"] = 1;
     listOfUSBPort["1-1.2"] = 2;
     listOfUSBPort["2-1.1"] = 3;
+    #endif
     registeredSUBSYSTEM.append("tty");
 }
 
@@ -66,7 +74,11 @@ void DeviceMonitor::setUp()
 static QString shortPath(QString path)
 {
     QStringList list = path.split("/");
+    #ifdef __arm__
+    return list.at(7);
+    #else
     return list.at(6);
+    #endif
 }
 
 void DeviceMonitor::endParseLine()
