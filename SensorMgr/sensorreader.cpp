@@ -2,12 +2,38 @@
 #include <QSerialPort>
 #include <QDebug>
 
+kalman_state kalman_init(double q, double r, double p, double intial_value)
+{
+    kalman_state result;
+    result.q = q;
+    result.r = r;
+    result.p = p;
+    result.x = intial_value;
+
+    return result;
+}
+
+double kalman_update(kalman_state* state, double measurement)
+{
+    //prediction update
+    //omit x = x
+    state->p = state->p + state->q;
+
+    //measurement update
+    state->k = state->p / (state->p + state->r);
+    state->x = state->x + state->k * (measurement - state->x);
+    state->p = (1 - state->k) * state->p;
+
+    return state->x;
+}
+
 
 SensorReader::SensorReader(QObject *parent, int id, QString devName):
     QThread(parent),
     devName(devName),
     id(id),
-    isStop(false)
+    isStop(false),
+    kalman(kalman_init(1, 15, 1, 0))
 {
     qRegisterMetaType<QSerialPort::SerialPortError>("QSerialPort::SerialPortError");
     start();
@@ -66,9 +92,8 @@ void SensorReader::handleData(QByteArray &arr)
         arr.remove(0, 4);
 
         float * data = (float*) number.data();
-//        qDebug() << "Value = " << *data;
 
-        sgn_NewData(id, *data);
+        sgn_NewData(id, (float)kalman_update(&kalman, *data));
     }
 }
 

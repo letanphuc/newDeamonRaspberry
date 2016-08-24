@@ -6,6 +6,17 @@
 #include <QString>
 #include <QSerialPort>
 
+
+
+typedef struct {
+    double q; //process noise covariance
+    double r; //measurement noise covariance
+    double x; //value
+    double p; //estimation error covariance
+    double k; //kalman gain
+} kalman_state;
+
+
 class SensorReader : public QThread
 {
     Q_OBJECT
@@ -22,6 +33,7 @@ private:
     QString devName;
     int id;
     bool isStop;
+    kalman_state kalman;
 
 signals:
     void sgn_Finished(SensorReader *);
