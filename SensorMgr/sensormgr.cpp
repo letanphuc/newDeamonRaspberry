@@ -59,12 +59,11 @@ void SensorMgr::slot_SensorRemoved(int usbPort, QString name)
         if (t->getId() == usbPort)
         {
             t->terminate();
+            connect(t, SIGNAL(finished()),
+                    this, SLOT(slot_ReaderFinished()));
+            needToDeleteThread= t;
+            listOfSensors.removeAt(i);
         }
-        listOfSensors.removeAt(i);
-        t->terminate();
-        connect(t, SIGNAL(finished()),
-                this, SLOT(slot_ReaderFinished()));
-        needToDeleteThread= t;
     }
 
 }
@@ -84,7 +83,7 @@ void SensorMgr::slot_ReaderFinished()
 
 void SensorMgr::slot_NewData(int id, float value)
 {
-//    qDebug() << Q_FUNC_INFO << " " << id << " " << value;
+    qDebug() << Q_FUNC_INFO << " " << id << " " << value;
     Sensor_t * sensor = 0;
     for (int i =0; i < listOfSensors.length(); i++)
     {
@@ -98,9 +97,10 @@ void SensorMgr::slot_NewData(int id, float value)
     if (sensor)
     {
         sensor->latestValue = value;
-        if (!sensor->hasNewData)
+        sensor->hasNewData = true;
+        if (1)
         {
-            sensor->hasNewData = true;
+
             /** check if enough data */
             for (int i =0; i < listOfSensors.length(); i++)
             {
