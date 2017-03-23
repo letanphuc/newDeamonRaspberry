@@ -38,6 +38,7 @@ private:
 signals:
     void sgn_Finished(SensorReader *);
     void sgn_NewData(int id, float value);
+    void sgn_NewInfoUpdate(int id, QString name, QString unit);
 public slots:
     void slot_Error(QSerialPort::SerialPortError error);
 };

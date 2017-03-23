@@ -85,6 +85,37 @@ void SharedMemMgr::removeSensor(int sensorID)
     mutex.unlock();
 }
 
+Sensor SharedMemMgr::getSensorInfo(int sensorID)
+{
+    Sensor s;
+    mutex.lock();
+    for (int i = 0; i < listOfSensors.length(); i++)
+    {
+        if (listOfSensors.at(i).id == sensorID)
+        {
+            s = listOfSensors.at(i);
+            break;
+        }
+    }
+    mutex.unlock();
+    return s;
+}
+
+void SharedMemMgr::modifySensor(int sensorID, Sensor sensor)
+{
+    mutex.lock();
+    for (int i = 0; i < listOfSensors.length(); i++)
+    {
+        if (listOfSensors.at(i).id == sensorID)
+        {
+            listOfSensors.removeAt(i);
+            listOfSensors.insert(i, sensor);
+            break;
+        }
+    }
+    mutex.unlock();
+}
+
 void SharedMemMgr::addRecord(Record record)
 {
     mutex.lock();

@@ -86,15 +86,73 @@ void SensorReader::setId(int value)
 
 void SensorReader::handleData(QByteArray &arr)
 {
-    if (arr.length() >= 4){
-        /** Read 4 byte */
-        QByteArray number = arr.left(4);
-        arr.remove(0, 4);
+    enum State
+    {
+        IDLE,
+        REC_DATA,
+        REC_INFO
+    };
+    static State currentState = IDLE;
+    static QByteArray currentData;
+    static QByteArray currentInfo;
 
-        float * data = (float*) number.data();
+    while (arr.length() > 0)
+    {
+        char b = arr.at(0);
+        arr.remove(0, 1);
 
-        sgn_NewData(id, (float)kalman_update(&kalman, *data));
+        switch (currentState)
+        {
+        case IDLE:
+            if (b == 0x14)
+            {
+                currentState = REC_INFO;
+                currentInfo.clear();
+            }
+            else if (b == 0x15)
+            {
+                currentState = REC_DATA;
+                currentData.clear();
+            }
+            break;
+
+        case REC_DATA:
+
+            if (b == 0x15 && currentData.length() >= 4)
+            {
+                QByteArray number = currentData.left(4);
+                arr.remove(0, 4);
+                float * data = (float*) number.data();
+                emit sgn_NewData(id, (float)kalman_update(&kalman, *data));
+
+                currentState = IDLE;
+            }
+            else
+            {
+                currentData.push_back(b);
+            }
+            break;
+
+        case REC_INFO:
+            if (b == 0x14)
+            {
+                if (currentInfo.length() > 0)
+                {
+                    QString data = QString::fromLatin1(currentInfo.data());
+                    QStringList tmp = data.split("|");
+                    qDebug() << data;
+                    emit sgn_NewInfoUpdate(id, tmp.at(0), tmp.at(1));
+                }
+                currentState = IDLE;
+            }
+            else
+            {
+                currentInfo.push_back(b);
+            }
+            break;
+        }
     }
+
 }
 
 void SensorReader::slot_Error(QSerialPort::SerialPortError error)

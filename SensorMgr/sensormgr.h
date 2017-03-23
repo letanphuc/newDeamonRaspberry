@@ -41,6 +41,7 @@ public slots:
     void slot_ReaderFinished(SensorReader * t);
     void slot_ReaderFinished();
     void slot_NewData(int id, float value);
+    void slot_newInfoUpdate(int id, QString name, QString unit);
 
 };
 

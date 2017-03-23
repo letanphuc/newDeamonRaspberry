@@ -18,6 +18,7 @@ public:
     QString type;
     QString decription;
     QString devName;
+    QString unit;
     Sensor(): id(0), type(""), decription(""){}
 };
 
@@ -48,6 +49,9 @@ public:
     /** For sensor thread to update data */
     void addSensor(Sensor sensor);
     void removeSensor(int sensorID);
+    Sensor getSensorInfo(int sensorID);
+    void modifySensor(int sensorID, Sensor sensor);
+
     void addRecord(Record record);
 
 private:

@@ -80,7 +80,7 @@ void WebSocketServer::slot_ReceiveMessage(QString message)
         for (int i = 0; i < sensors.length(); i ++ )
         {
             reply += QString::number(sensors.at(i).id) + "," +
-                    sensors.at(i).type + "|";
+                    sensors.at(i).type + "," + sensors.at(i).unit + "|";
         }
 
     }

@@ -34,7 +34,7 @@ void SensorMgr::slot_SensorAdded(int usbPort, QString name)
     Sensor s;
     s.decription = "decription";
     s.id = usbPort;
-    s.type = "ultrasonic";
+    s.type = "";
     s.devName = "/dev/" + name;
 
     sharedMemMgr.addSensor(s);
@@ -42,6 +42,9 @@ void SensorMgr::slot_SensorAdded(int usbPort, QString name)
     sensor->reader = new SensorReader(this, s.id, s.devName);
     connect(sensor->reader, SIGNAL(sgn_NewData(int,float)),
             this, SLOT(slot_NewData(int,float)));
+    connect(sensor->reader, SIGNAL(sgn_NewInfoUpdate(int,QString,QString)),
+            this, SLOT(slot_newInfoUpdate(int,QString,QString)));
+
     sensor->latestValue = 0;
     sensor->hasNewData = false;
     listOfSensors.append(sensor);
@@ -83,7 +86,7 @@ void SensorMgr::slot_ReaderFinished()
 
 void SensorMgr::slot_NewData(int id, float value)
 {
-    qDebug() << Q_FUNC_INFO << " " << id << " " << value;
+//    qDebug() << Q_FUNC_INFO << " " << id << " " << value;
     Sensor_t * sensor = 0;
     for (int i =0; i < listOfSensors.length(); i++)
     {
@@ -122,4 +125,13 @@ void SensorMgr::slot_NewData(int id, float value)
 
         }
     }
+}
+
+void SensorMgr::slot_newInfoUpdate(int id, QString name, QString unit)
+{
+    qDebug() << Q_FUNC_INFO;
+    Sensor s = sharedMemMgr.getSensorInfo(id);
+    s.type = name;
+    s.unit = unit;
+    sharedMemMgr.modifySensor(id, s);
 }
