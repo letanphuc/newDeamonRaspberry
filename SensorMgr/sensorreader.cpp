@@ -33,7 +33,8 @@ SensorReader::SensorReader(QObject *parent, int id, QString devName):
     devName(devName),
     id(id),
     isStop(false),
-    kalman(kalman_init(1, 15, 1, 0))
+    kalman(kalman_init(1, 15, 1, 0)),
+    currentState(IDLE)
 {
     qRegisterMetaType<QSerialPort::SerialPortError>("QSerialPort::SerialPortError");
     start();
@@ -86,15 +87,8 @@ void SensorReader::setId(int value)
 
 void SensorReader::handleData(QByteArray &arr)
 {
-    enum State
-    {
-        IDLE,
-        REC_DATA,
-        REC_INFO
-    };
-    static State currentState = IDLE;
-    static QByteArray currentData;
-    static QByteArray currentInfo;
+
+
 
     while (arr.length() > 0)
     {
@@ -141,7 +135,8 @@ void SensorReader::handleData(QByteArray &arr)
                     QString data = QString::fromLatin1(currentInfo.data());
                     QStringList tmp = data.split("|");
                     qDebug() << data;
-                    emit sgn_NewInfoUpdate(id, tmp.at(0), tmp.at(1));
+                    if (data.length() >= 2)
+                        emit sgn_NewInfoUpdate(id, tmp.at(0), tmp.at(1));
                 }
                 currentState = IDLE;
             }

@@ -16,6 +16,12 @@ typedef struct {
     double k; //kalman gain
 } kalman_state;
 
+enum State
+{
+    IDLE,
+    REC_DATA,
+    REC_INFO
+};
 
 class SensorReader : public QThread
 {
@@ -34,6 +40,9 @@ private:
     int id;
     bool isStop;
     kalman_state kalman;
+    State currentState;
+    QByteArray currentData;
+    QByteArray currentInfo;
 
 signals:
     void sgn_Finished(SensorReader *);
